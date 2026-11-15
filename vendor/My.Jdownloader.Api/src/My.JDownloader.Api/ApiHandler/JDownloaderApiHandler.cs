@@ -12,6 +12,7 @@ using My.JDownloader.Api.Models.Action;
 using My.JDownloader.Api.Models.Devices;
 using My.JDownloader.Api.Models.Login;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace My.JDownloader.Api.ApiHandler
 {
@@ -92,18 +93,19 @@ namespace My.JDownloader.Api.ApiHandler
             string response = PostMethod(url,
                 json, loginObject.DeviceEncryptionToken);
 
-            if (response != null && !response.Contains(callAction.RequestId.ToString()))
-            {
-                if (decryptResponse)
-                {
-                    string tmp = Decrypt(response, loginObject.DeviceEncryptionToken);
-                    if (deserialize)
-                        return (T) JsonConvert.DeserializeObject(tmp, typeof(T));
-                    return (T)Convert.ChangeType(response, typeof(T));
-                }
-            }
-            else
+            if (response == null)
                 throw new InvalidRequestIdException("The 'RequestId' differs from the 'RequestId' from the queryRequest.");
+
+            if (decryptResponse)
+            {
+                string tmp = Decrypt(response, loginObject.DeviceEncryptionToken);
+                var responseRequestId = JObject.Parse(tmp)["rid"]?.Value<int>();
+                if (responseRequestId != callAction.RequestId)
+                    throw new InvalidRequestIdException("The 'RequestId' differs from the 'RequestId' from the queryRequest.");
+                if (deserialize)
+                    return (T) JsonConvert.DeserializeObject(tmp, typeof(T));
+                return (T)Convert.ChangeType(tmp, typeof(T));
+            }
 
             if (deserialize)
                 return (T)JsonConvert.DeserializeObject(response, typeof(T));

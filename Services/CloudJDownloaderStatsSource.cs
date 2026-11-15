@@ -18,8 +18,10 @@ public sealed class CloudJDownloaderStatsSource : IDownloadStatsSource
 	private Task? _linkStatsRefresh;
 	private bool _linkStatsLoaded;
 	private Exception? _linkStatsFault;
+	private int _linkStatsFailures;
 	private DateTimeOffset _nextLinkStatsRefresh = DateTimeOffset.MinValue;
 	private static readonly TimeSpan LinkStatsInterval = TimeSpan.FromSeconds(30);
+	private const int MaxConsecutiveLinkStatsFailures = 3;
 
 	public CloudJDownloaderStatsSource(string email, string password)
 		: this(email, password, new JDownloaderCloud(AppKey))
@@ -73,16 +75,17 @@ public sealed class CloudJDownloaderStatsSource : IDownloadStatsSource
 
 			LinkStats linkStats;
 			bool linkStatsLoaded;
+			int linkStatsFailures;
 			Exception? linkStatsFault;
 			lock (_linkStatsLock)
 			{
 				linkStats = _linkStats;
 				linkStatsLoaded = _linkStatsLoaded;
+				linkStatsFailures = _linkStatsFailures;
 				linkStatsFault = _linkStatsFault;
-				_linkStatsFault = null;
 			}
 
-			if (linkStatsFault is not null)
+			if (linkStatsFailures >= MaxConsecutiveLinkStatsFailures)
 			{
 				throw new InvalidOperationException("Could not load link statistics from My.JDownloader.", linkStatsFault);
 			}
@@ -123,6 +126,7 @@ public sealed class CloudJDownloaderStatsSource : IDownloadStatsSource
 			{
 				_linkStats = stats;
 				_linkStatsLoaded = true;
+				_linkStatsFailures = 0;
 			}
 		}
 		catch (Exception ex)
@@ -130,6 +134,7 @@ public sealed class CloudJDownloaderStatsSource : IDownloadStatsSource
 			lock (_linkStatsLock)
 			{
 				_linkStatsFault = ex;
+				_linkStatsFailures++;
 			}
 		}
 	}

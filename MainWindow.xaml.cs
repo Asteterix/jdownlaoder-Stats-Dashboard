@@ -30,9 +30,11 @@ namespace jdownloader_Stats
 				private IDownloadStatsSource? _source;
 				private Polyline? _graphLine;
 				private bool _polling;
+				private int _consecutivePollFailures;
 				private AppSettings _settings = SettingsStore.Load();
 				private CloudJDownloaderStatsSource? _linkSender;
 				private const int WmClipboardUpdate = 0x031D;
+				private const int MaxConsecutivePollFailures = 3;
 
 				public MainWindow()
 		{
@@ -92,6 +94,7 @@ namespace jdownloader_Stats
 						ConnectButton.Content = "Disconnect";
 						SetupButton.IsEnabled = false;
 						StatusText.Text = "Connecting ...";
+						_consecutivePollFailures = 0;
 						_timer.Start();
 						await PollAsync();
 					}
@@ -223,6 +226,7 @@ namespace jdownloader_Stats
 						_source?.Dispose();
 						_source = null;
 						_linkSender = null;
+						_consecutivePollFailures = 0;
 						ConnectButton.Content = "Connect";
 						SetupButton.IsEnabled = true;
 						StatusText.Text = status;
@@ -239,6 +243,7 @@ namespace jdownloader_Stats
 						try
 						{
 							var snapshot = await _source.GetSnapshotAsync(CancellationToken.None);
+							_consecutivePollFailures = 0;
 							_history.Add(snapshot.BytesPerSecond);
 							Render(snapshot);
 							StatusText.Text = $"Updated {snapshot.Timestamp:HH:mm:ss}";
@@ -248,7 +253,15 @@ namespace jdownloader_Stats
 						}
 						catch (Exception ex)
 						{
-							Disconnect(DescribeError(ex));
+							_consecutivePollFailures++;
+							if (_consecutivePollFailures >= MaxConsecutivePollFailures)
+							{
+								Disconnect(DescribeError(ex));
+							}
+							else
+							{
+								StatusText.Text = $"Retry {_consecutivePollFailures}/{MaxConsecutivePollFailures}: {DescribeError(ex)}";
+							}
 						}
 						finally
 						{

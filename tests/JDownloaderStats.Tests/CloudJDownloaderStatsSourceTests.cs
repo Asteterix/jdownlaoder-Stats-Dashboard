@@ -198,15 +198,17 @@ public class CloudJDownloaderStatsSourceTests
 	}
 
 	[Fact]
-	public async Task GetSnapshotAsync_SurfacesLinkStatsFailure()
+	public async Task GetSnapshotAsync_IgnoresSingleLinkStatsFailure()
 	{
 		var (source, _, session) = CreateConnected();
 		session.QueryException = new IOException("boom");
 		await source.ConnectAsync(CancellationToken.None);
 
-		var ex = await SnapshotFailureAsync(source);
+		await source.GetSnapshotAsync(CancellationToken.None);
+		await Task.Delay(100);
+		var snapshot = await source.GetSnapshotAsync(CancellationToken.None);
 
-		Assert.IsType<IOException>(ex.InnerException);
+		Assert.False(snapshot.LinksLoaded);
 	}
 
 	[Fact]
@@ -231,22 +233,4 @@ public class CloudJDownloaderStatsSourceTests
 		await Assert.ThrowsAsync<InvalidOperationException>(() => source.GetSnapshotAsync(CancellationToken.None));
 	}
 
-	private static async Task<InvalidOperationException> SnapshotFailureAsync(CloudJDownloaderStatsSource source)
-	{
-		for (var attempt = 0; attempt < 200; attempt++)
-		{
-			try
-			{
-				await source.GetSnapshotAsync(CancellationToken.None);
-			}
-			catch (InvalidOperationException ex) when (ex.InnerException is not null)
-			{
-				return ex;
-			}
-
-			await Task.Delay(10);
-		}
-
-		throw new TimeoutException("Link stats failure was not surfaced.");
 	}
-}
