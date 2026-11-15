@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <RootNamespace>jdownloader_Stats</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+        <Version>1.0.0</Version>
+        <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+        <SelfContained>true</SelfContained>
+        <PublishSingleFile>true</PublishSingleFile>
+        <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+      </PropertyGroup>
+
+      <ItemGroup>
+        <Compile Remove="tests\**" />
+        <Compile Remove="vendor\**" />
+        <None Remove="tests\**" />
+        <None Remove="vendor\**" />
+      </ItemGroup>
+
+      <ItemGroup>
+        <None Include=".github\copilot-instructions.md" />
+        <None Include=".github\workflows\release.yml" />
+        <None Include="tests\JDownloaderStats.Tests\JDownloaderStats.Tests.csproj" />
+      </ItemGroup>
+
+      <ItemGroup>
+          <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+        </ItemGroup>
+
+        <ItemGroup>
+          <ProjectReference Include="vendor\My.Jdownloader.Api\src\My.JDownloader.Api\My.JDownloader.Api.csproj" />
+        </ItemGroup>
+
+    </Project>

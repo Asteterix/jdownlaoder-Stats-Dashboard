@@ -1,0 +1,22 @@
+<Window x:Class="jdownloader_Stats.SetupWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Setup" Width="380" SizeToContent="Height" ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner">
+    <StackPanel Margin="12">
+        <GroupBox Header="My.JDownloader" Padding="8">
+            <StackPanel>
+                <TextBlock Text="E-Mail"/>
+                <TextBox x:Name="EmailBox"/>
+                <TextBlock Text="Passwort" Margin="0,8,0,0"/>
+                <PasswordBox x:Name="PasswordBox"/>
+                <TextBlock Text="Das Passwort wird nur verschlüsselt für diesen Windows-Benutzer gespeichert." Foreground="Gray" FontSize="11" Margin="0,6,0,0" TextWrapping="Wrap"/>
+            </StackPanel>
+        </GroupBox>
+        <TextBlock x:Name="MessageText" Foreground="Gray" TextWrapping="Wrap" Margin="0,8,0,0"/>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Content="Abbrechen" Padding="12,3" IsCancel="True" Margin="0,0,8,0"/>
+            <Button Content="Speichern" Padding="12,3" IsDefault="True" Click="Save_Click"/>
+        </StackPanel>
+    </StackPanel>
+</Window>

@@ -1,0 +1,9 @@
+login.json
+*.user
+*.suo
+.vs/
+bin/
+obj/
+publish/
+TestResults/
+*.log
