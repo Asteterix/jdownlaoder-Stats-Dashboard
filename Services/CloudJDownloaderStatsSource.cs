@@ -1,9 +1,7 @@
 using jdownloader_Stats.Models;
-using My.JDownloader.Api;
 using My.JDownloader.Api.Models.Devices;
 using My.JDownloader.Api.Models.DownloadsV2.Request;
 using My.JDownloader.Api.Models.DownloadsV2.Response;
-using My.JDownloader.Api.Namespaces;
 
 namespace jdownloader_Stats.Services;
 
@@ -13,8 +11,8 @@ public sealed class CloudJDownloaderStatsSource : IDownloadStatsSource
 
 	private readonly string _email;
 	private readonly string _password;
-	private readonly JDownloaderHandler _handler;
-	private DeviceHandler? _device;
+	private readonly IJDownloaderCloud _cloud;
+	private IDeviceCloudSession? _device;
 	private LinkStats _linkStats = new(0, 0, 0, 0, 0);
 	private Task? _linkStatsRefresh;
 	private bool _linkStatsLoaded;
@@ -22,10 +20,15 @@ public sealed class CloudJDownloaderStatsSource : IDownloadStatsSource
 	private static readonly TimeSpan LinkStatsInterval = TimeSpan.FromSeconds(30);
 
 	public CloudJDownloaderStatsSource(string email, string password)
+		: this(email, password, new JDownloaderCloud(AppKey))
+	{
+	}
+
+	public CloudJDownloaderStatsSource(string email, string password, IJDownloaderCloud cloud)
 	{
 		_email = email;
 		_password = password;
-		_handler = new JDownloaderHandler(AppKey);
+		_cloud = cloud;
 	}
 
 	public Task ConnectAsync(CancellationToken cancellationToken)
@@ -34,14 +37,14 @@ public sealed class CloudJDownloaderStatsSource : IDownloadStatsSource
 		{
 			cancellationToken.ThrowIfCancellationRequested();
 
-			if (!_handler.Connect(_email, _password))
+			if (!_cloud.Connect(_email, _password))
 			{
 				throw new InvalidOperationException("Could not connect to My.JDownloader.");
 			}
 
-			Device device = _handler.GetDevices().FirstOrDefault()
+			Device device = _cloud.GetDevices().FirstOrDefault()
 				?? throw new InvalidOperationException("No device is connected to the My.JDownloader account.");
-			_device = _handler.GetDeviceHandler(device, useJdownloaderApi: true)
+			_device = _cloud.GetDeviceSession(device)
 				?? throw new InvalidOperationException("Could not create a handler for the selected device.");
 		}, cancellationToken);
 	}
@@ -58,7 +61,7 @@ public sealed class CloudJDownloaderStatsSource : IDownloadStatsSource
 		{
 			cancellationToken.ThrowIfCancellationRequested();
 
-			long speed = device.DownloadController.GetSpeedInBps();
+			long speed = device.GetSpeedInBps();
 
 			if (DateTimeOffset.Now >= _nextLinkStatsRefresh && (_linkStatsRefresh is null || _linkStatsRefresh.IsCompleted))
 			{
@@ -82,12 +85,12 @@ public sealed class CloudJDownloaderStatsSource : IDownloadStatsSource
 		}, cancellationToken);
 	}
 
-	private static LinkStats QueryLinkStats(DeviceHandler device)
+	private static LinkStats QueryLinkStats(IDeviceCloudSession device)
 	{
 		var links = new List<DownloadLinkResponse>();
 		for (int startAt = 0; ; startAt += 100)
 		{
-			var page = device.DownloadsV2
+			var page = device
 				.QueryLinks(new LinkQueryRequest
 				{
 					MaxResults = 100,

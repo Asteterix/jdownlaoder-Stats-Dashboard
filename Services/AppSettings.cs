@@ -11,21 +11,25 @@ public sealed record AppSettings
 
 public static class SettingsStore
 {
-	private static readonly string FilePath = Path.Combine(
+	private static readonly string DefaultFilePath = Path.Combine(
 		Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
 		"jdownloader Stats",
 		"settings.json");
 
-	public static AppSettings Load()
+	public static AppSettings Load() => Load(DefaultFilePath);
+
+	public static void Save(AppSettings settings) => Save(settings, DefaultFilePath);
+
+	public static AppSettings Load(string filePath)
 	{
-		if (!File.Exists(FilePath))
+		if (!File.Exists(filePath))
 		{
 			return new AppSettings();
 		}
 
 		try
 		{
-			return JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(FilePath)) ?? new AppSettings();
+			return JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(filePath)) ?? new AppSettings();
 		}
 		catch (JsonException)
 		{
@@ -33,9 +37,9 @@ public static class SettingsStore
 		}
 	}
 
-	public static void Save(AppSettings settings)
+	public static void Save(AppSettings settings, string filePath)
 	{
-		Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
-		File.WriteAllText(FilePath, JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true }));
+		Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
+		File.WriteAllText(filePath, JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true }));
 	}
 }

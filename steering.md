@@ -30,6 +30,7 @@ WPF desktop application (.NET 10) that displays download statistics from a JDown
 ## Testing
 - Add or update xUnit tests in `tests/JDownloaderStats.Tests/` for changes to `Services/` and `Models/`.
 - Run the full solution build and tests before finishing a change.
+- All unit tests must pass before any check-in or push. Do not commit or push with failing tests.
 
 ## Build & Release
 - Build: `dotnet build "jdownloader Stats.slnx"`
