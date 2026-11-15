@@ -71,6 +71,7 @@ namespace jdownloader_Stats
 						}
 
 						CloudJDownloaderStatsSource cloud;
+						ConnectButton.IsEnabled = false;
 						try
 						{
 							cloud = new CloudJDownloaderStatsSource(_settings.CloudEmail, SecretProtector.Unprotect(_settings.ProtectedCloudPassword));
@@ -82,9 +83,14 @@ namespace jdownloader_Stats
 							StatusText.Text = DescribeError(ex);
 							return;
 						}
+						finally
+						{
+							ConnectButton.IsEnabled = true;
+						}
 						_source = cloud;
 						_linkSender = cloud;
 						ConnectButton.Content = "Disconnect";
+						SetupButton.IsEnabled = false;
 						StatusText.Text = "Connecting ...";
 						_timer.Start();
 						await PollAsync();
@@ -174,18 +180,23 @@ namespace jdownloader_Stats
 							return;
 						}
 
+						_lastSentLink = url;
 						try
 						{
 							var accepted = await _linkSender.SendLinkAsync(url, CancellationToken.None);
 							StatusText.Text = accepted ? $"Link sent: {url}" : "JDownloader rejected the link";
 							if (accepted)
 							{
-								_lastSentLink = url;
 								ShowLinkNotification();
+							}
+							else
+							{
+								_lastSentLink = null;
 							}
 						}
 						catch (Exception ex)
 						{
+							_lastSentLink = null;
 							StatusText.Text = DescribeError(ex);
 						}
 					}
@@ -213,6 +224,7 @@ namespace jdownloader_Stats
 						_source = null;
 						_linkSender = null;
 						ConnectButton.Content = "Connect";
+						SetupButton.IsEnabled = true;
 						StatusText.Text = status;
 					}
 
