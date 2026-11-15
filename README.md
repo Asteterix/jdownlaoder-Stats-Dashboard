@@ -20,7 +20,7 @@ A small Windows WPF dashboard that shows live download statistics from a JDownlo
 ## Getting Started
 
 ```powershell
-git clone --recurse-submodules https://github.com/<your-account>/jDownloaderStatsDashboard.git
+git clone --recurse-submodules https://github.com/Asteterix/jdownlaoder-Stats-Dashboard.git
 cd jDownloaderStatsDashboard
 dotnet build "jdownloader Stats.slnx"
 dotnet test "jdownloader Stats.slnx"
