@@ -37,10 +37,27 @@ internal sealed class FakeDeviceSession : IDeviceCloudSession
 
 	public List<int> RequestedStartAt { get; } = [];
 
+	public List<string> AddedLinks { get; } = [];
+
+	public bool AddLinksResult { get; set; } = true;
+
+	public Exception? QueryException { get; set; }
+
 	public long GetSpeedInBps() => Speed;
+
+	public bool AddLinks(string url)
+	{
+		AddedLinks.Add(url);
+		return AddLinksResult;
+	}
 
 	public IEnumerable<DownloadLinkResponse> QueryLinks(LinkQueryRequest request)
 	{
+		if (QueryException is not null)
+		{
+			throw QueryException;
+		}
+
 		RequestedStartAt.Add(request.StartAt);
 		int index = request.StartAt / 100;
 		return index < Pages.Count ? Pages[index] : [];

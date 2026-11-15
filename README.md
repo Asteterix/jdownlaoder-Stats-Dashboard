@@ -7,7 +7,8 @@ A small Windows WPF dashboard that shows live download statistics from a JDownlo
 - Connects to My.JDownloader with your account credentials
 - Polls statistics every second
 - Speed graph of the last 120 samples
-- "Im Vordergrund" (always on top) option that hides the title bar; drag the window to move it
+- "Always on top" option that hides the title bar; drag the window to move it
+- Optional clipboard monitoring: copy an `https://` link and it is sent to JDownloader's LinkGrabber (added, not started), with a short "URL sent" notification
 - Credentials are stored locally and protected with Windows DPAPI for the current user
 
 ## Requirements
@@ -29,7 +30,11 @@ dotnet run --project "jdownloader Stats.csproj"
 
 If you cloned without `--recurse-submodules`, run `git submodule update --init --recursive`.
 
-On first start, open **Setup** and enter your My.JDownloader e-mail and password. Then click **Verbinden** (Connect).
+On first start, open **Setup** and enter your My.JDownloader e-mail and password. Then click **Connect**.
+
+## Clipboard Links
+
+Enable **Send clipboard links** in the dashboard while connected. Each time the clipboard changes to a valid `https://` URL, the link is added to the JDownloader LinkGrabber without starting it. Text that is not a valid https URL is ignored. Links are not sent while disconnected.
 
 ## Project Structure
 

@@ -20,7 +20,7 @@ public partial class SetupWindow : Window
 	{
 		if (string.IsNullOrWhiteSpace(EmailBox.Text) || (PasswordBox.Password.Length == 0 && string.IsNullOrEmpty(_current.ProtectedCloudPassword)))
 		{
-			MessageText.Text = "E-Mail und Passwort eingeben.";
+			MessageText.Text = "Enter e-mail and password.";
 			return;
 		}
 

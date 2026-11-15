@@ -4,19 +4,19 @@
 This steering file must be considered in every session. Read it before planning or changing code, and follow it for all work in this workspace.
 
 ## Purpose
-WPF desktop application (.NET 10) that displays download statistics from a JDownloader instance, either locally or via the JDownloader cloud API.
+displays download statistics from a JDownloader instance via the My.JDownloader cloud API.
 
 ## Project Structure
 - `jdownloader Stats.csproj` - main WPF application
   - `Models/` - data models (e.g. `DownloadSnapshot`)
-  - `Services/` - data sources, parsing, LAN discovery, settings, secret protection, formatting
+  data sources (cloud API), parsing, settings, secret protection, formatting
   - `MainWindow.xaml(.cs)`, `SetupWindow.xaml(.cs)`, `App.xaml(.cs)` - UI
 - `tests/JDownloaderStats.Tests/` - xUnit test project
 - `vendor/My.Jdownloader.Api/` - vendored JDownloader API client. Treat as third-party code: avoid modifying it unless required, and keep changes minimal.
 - `.github/workflows/release.yml` - release pipeline
 
 ## Architecture Conventions
-- Data access goes through interfaces (e.g. `IDownloadStatsSource`) with concrete implementations (`LocalJDownloaderStatsSource`, `CloudJDownloaderStatsSource`).
+(`CloudJDownloaderStatsSource`), with cloud client abstractions (`IJDownloaderCloud`, `IDeviceCloudSession`) to allow fakes in tests.
 - Keep UI logic in the window code-behind or view models; keep parsing, formatting and networking in `Services/`.
 - Credentials must be protected via `SecretProtector`; never store secrets in plain text or commit them (`login.json` is local only).
 

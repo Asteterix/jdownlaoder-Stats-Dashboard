@@ -31,7 +31,7 @@ public static class SettingsStore
 		{
 			return JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(filePath)) ?? new AppSettings();
 		}
-		catch (JsonException)
+		catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
 		{
 			return new AppSettings();
 		}

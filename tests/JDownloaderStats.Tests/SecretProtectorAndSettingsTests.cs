@@ -88,4 +88,16 @@ public class SettingsStoreTests : IDisposable
 
 		Assert.Equal("a@b.c", settings.CloudEmail);
 	}
+
+	[Fact]
+	public void Load_ReturnsDefaults_WhenFileIsLocked()
+	{
+		Directory.CreateDirectory(_directory);
+		File.WriteAllText(FilePath, "{\"CloudEmail\":\"a@b.c\"}");
+		using var locked = new FileStream(FilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+
+		var settings = SettingsStore.Load(FilePath);
+
+		Assert.Equal(string.Empty, settings.CloudEmail);
+	}
 }
