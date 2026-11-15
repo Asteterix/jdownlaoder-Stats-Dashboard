@@ -44,7 +44,6 @@ On first start, open **Setup** and enter your My.JDownloader e-mail and password
 
 ## Security
 
-- Never commit `login.json` or other files with credentials. It is listed in `.gitignore`.
 - Passwords are stored only as DPAPI-protected data in the local user profile.
 
 ## Licensing
