@@ -2,6 +2,7 @@ using My.JDownloader.Api;
 using My.JDownloader.Api.Models.Devices;
 using My.JDownloader.Api.Models.DownloadsV2.Request;
 using My.JDownloader.Api.Models.DownloadsV2.Response;
+using My.JDownloader.Api.Models.LinkgrabberV2.Request;
 
 namespace jdownloader_Stats.Services;
 
@@ -19,6 +20,8 @@ public interface IDeviceCloudSession
 	long GetSpeedInBps();
 
 	IEnumerable<DownloadLinkResponse> QueryLinks(LinkQueryRequest request);
+
+	bool AddLinks(string url);
 }
 
 public sealed class JDownloaderCloud : IJDownloaderCloud
@@ -46,5 +49,8 @@ public sealed class JDownloaderCloud : IJDownloaderCloud
 
 		public IEnumerable<DownloadLinkResponse> QueryLinks(LinkQueryRequest request) =>
 			device.DownloadsV2.QueryLinks(request) ?? [];
+
+		public bool AddLinks(string url) =>
+			device.LinkgrabberV2.AddLinks(new AddLinkRequest { Links = url, AutoStart = false });
 	}
 }

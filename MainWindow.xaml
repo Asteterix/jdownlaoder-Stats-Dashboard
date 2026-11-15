@@ -5,45 +5,51 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:jdownloader_Stats"
         mc:Ignorable="d"
-        Title="JDownloader Stats" Height="220" Width="320" MinHeight="170" MinWidth="240" MouseLeftButtonDown="Window_MouseLeftButtonDown">
+        Title="JDownloader Stats" Height="240" Width="320" MinHeight="170" MinWidth="240" MouseLeftButtonDown="Window_MouseLeftButtonDown">
     <Grid Background="#FF1E1E1E">
-            <Canvas x:Name="GraphCanvas" Opacity="0.35" IsHitTestVisible="False"/>
-            <Grid Margin="12">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                <TextBlock x:Name="SpeedText" Grid.Row="0" Text="-- /s" FontSize="28" FontWeight="SemiBold" Foreground="White" TextTrimming="CharacterEllipsis"/>
-                <Grid Grid.Row="1" Margin="0,4,0,6">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock x:Name="ActiveText" Grid.Column="0" Text="Aktiv: -" Foreground="#FFDDDDDD"/>
-                    <TextBlock x:Name="QueuedText" Grid.Column="1" Text="Warteschlange: -" Foreground="#FFDDDDDD" Margin="8,0"/>
-                    <TextBlock x:Name="PercentText" Grid.Column="2" Text="0 %" Foreground="#FFDDDDDD"/>
-                </Grid>
-                <ProgressBar x:Name="ProgressBar" Grid.Row="2" Height="8" VerticalAlignment="Top" Minimum="0" Maximum="100" Value="0" Margin="0,0,0,0"/>
-                <TextBlock x:Name="EtaText" Grid.Row="3" Text="ETA: -" Foreground="#FFDDDDDD" HorizontalAlignment="Right" Margin="0,4,0,0"/>
-                <TextBlock x:Name="StatusText" Grid.Row="4" Text="Nicht verbunden" Foreground="#FF9E9E9E" FontSize="11" TextTrimming="CharacterEllipsis" Margin="0,6,0,6"/>
-                <Grid Grid.Row="5">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock x:Name="ModeText" Grid.Column="0" Text="Nicht konfiguriert" Foreground="#FFDDDDDD" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,8,0"/>
-                    <Button x:Name="SetupButton" Grid.Column="1" Content="Setup" Padding="10,2" Click="SetupButton_Click"/>
-                    <Button x:Name="ConnectButton" Grid.Column="2" Content="Verbinden" Padding="10,2" Margin="6,0,0,0" Click="ConnectButton_Click"/>
-                </Grid>
-                <CheckBox x:Name="TopmostCheckBox" Grid.Row="6" Margin="0,6,0,0" Content="Im Vordergrund" Foreground="White" Click="TopmostCheckBox_Click"/>
+        <Canvas x:Name="GraphCanvas" Opacity="0.35" IsHitTestVisible="False"/>
+        <Border x:Name="LinkNotificationBorder" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#E61FA34A" CornerRadius="6" Padding="14,6" IsHitTestVisible="False">
+            <TextBlock x:Name="LinkNotificationText" Text="URL sent" Foreground="White" FontSize="16" FontWeight="SemiBold"/>
+        </Border>
+        <Grid Margin="12">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <TextBlock x:Name="SpeedText" Grid.Row="0" Text="-- /s" FontSize="28" FontWeight="SemiBold" Foreground="White" TextTrimming="CharacterEllipsis"/>
+            <Grid Grid.Row="1" Margin="0,4,0,6">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="ActiveText" Grid.Column="0" Text="Active: -" Foreground="#FFDDDDDD"/>
+                <TextBlock x:Name="QueuedText" Grid.Column="1" Text="Queued: -" Foreground="#FFDDDDDD" Margin="8,0"/>
+                <TextBlock x:Name="PercentText" Grid.Column="2" Text="0 %" Foreground="#FFDDDDDD"/>
             </Grid>
-
+            <ProgressBar x:Name="ProgressBar" Grid.Row="2" Height="8" VerticalAlignment="Top" Minimum="0" Maximum="100" Value="0"/>
+            <TextBlock x:Name="EtaText" Grid.Row="3" Text="ETA: -" Foreground="#FFDDDDDD" HorizontalAlignment="Right" Margin="0,4,0,0"/>
+            <TextBlock x:Name="StatusText" Grid.Row="4" Text="Not connected" Foreground="#FF9E9E9E" FontSize="11" TextTrimming="CharacterEllipsis" Margin="0,6,0,6"/>
+            <Grid Grid.Row="5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="ModeText" Grid.Column="0" Text="Not configured" Foreground="#FF9E9E9E" FontSize="11" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                <Button x:Name="SetupButton" Grid.Column="1" Content="Setup" Padding="10,2" Click="SetupButton_Click"/>
+                <Button x:Name="ConnectButton" Grid.Column="2" Content="Connect" Padding="10,2" Margin="6,0,0,0" Click="ConnectButton_Click"/>
+            </Grid>
+            <StackPanel Grid.Row="6" Orientation="Horizontal" Margin="0,6,0,0">
+                <CheckBox x:Name="TopmostCheckBox" Content="Always on top" Foreground="#FFDDDDDD" Click="TopmostCheckBox_Click"/>
+                <CheckBox x:Name="ClipboardCheckBox" Content="Send clipboard links" Foreground="#FFDDDDDD" Margin="12,0,0,0" Click="ClipboardCheckBox_Click"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>
+

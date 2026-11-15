@@ -8,15 +8,15 @@
             <StackPanel>
                 <TextBlock Text="E-Mail"/>
                 <TextBox x:Name="EmailBox"/>
-                <TextBlock Text="Passwort" Margin="0,8,0,0"/>
+                Text="Password"
                 <PasswordBox x:Name="PasswordBox"/>
-                <TextBlock Text="Das Passwort wird nur verschlüsselt für diesen Windows-Benutzer gespeichert." Foreground="Gray" FontSize="11" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                Text="The password is stored encrypted for this Windows user only."
             </StackPanel>
         </GroupBox>
         <TextBlock x:Name="MessageText" Foreground="Gray" TextWrapping="Wrap" Margin="0,8,0,0"/>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-            <Button Content="Abbrechen" Padding="12,3" IsCancel="True" Margin="0,0,8,0"/>
-            <Button Content="Speichern" Padding="12,3" IsDefault="True" Click="Save_Click"/>
+            Content="Cancel"
+            Content="Save"
         </StackPanel>
     </StackPanel>
 </Window>

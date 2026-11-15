@@ -7,15 +7,17 @@ namespace jdownloader_Stats.Services;
 
 public sealed class CloudJDownloaderStatsSource : IDownloadStatsSource
 {
-	private const string AppKey = "http://git.io/vmcsk";
+	private const string AppKey = "jdownlaoder-Stats-Dashboard";
 
 	private readonly string _email;
 	private readonly string _password;
 	private readonly IJDownloaderCloud _cloud;
 	private IDeviceCloudSession? _device;
+	private readonly Lock _linkStatsLock = new();
 	private LinkStats _linkStats = new(0, 0, 0, 0, 0);
 	private Task? _linkStatsRefresh;
 	private bool _linkStatsLoaded;
+	private Exception? _linkStatsFault;
 	private DateTimeOffset _nextLinkStatsRefresh = DateTimeOffset.MinValue;
 	private static readonly TimeSpan LinkStatsInterval = TimeSpan.FromSeconds(30);
 
@@ -66,23 +68,70 @@ public sealed class CloudJDownloaderStatsSource : IDownloadStatsSource
 			if (DateTimeOffset.Now >= _nextLinkStatsRefresh && (_linkStatsRefresh is null || _linkStatsRefresh.IsCompleted))
 			{
 				_nextLinkStatsRefresh = DateTimeOffset.Now + LinkStatsInterval;
-				_linkStatsRefresh = Task.Run(() =>
-				{
-					_linkStats = QueryLinkStats(device);
-					_linkStatsLoaded = true;
-				});
+				_linkStatsRefresh = Task.Run(() => RefreshLinkStats(device));
+			}
+
+			LinkStats linkStats;
+			bool linkStatsLoaded;
+			Exception? linkStatsFault;
+			lock (_linkStatsLock)
+			{
+				linkStats = _linkStats;
+				linkStatsLoaded = _linkStatsLoaded;
+				linkStatsFault = _linkStatsFault;
+				_linkStatsFault = null;
+			}
+
+			if (linkStatsFault is not null)
+			{
+				throw new InvalidOperationException("Could not load link statistics from My.JDownloader.", linkStatsFault);
 			}
 
 			return new DownloadSnapshot(
 				DateTimeOffset.Now,
 				speed,
-				_linkStats.ActiveDownloads,
-				_linkStats.QueuedLinks,
-				_linkStats.BytesLoaded,
-				_linkStats.BytesTotal,
-				_linkStatsLoaded,
-				_linkStats.RemainingBytes);
+				linkStats.ActiveDownloads,
+				linkStats.QueuedLinks,
+				linkStats.BytesLoaded,
+				linkStats.BytesTotal,
+				linkStatsLoaded,
+				linkStats.RemainingBytes);
 		}, cancellationToken);
+	}
+
+	public Task<bool> SendLinkAsync(string url, CancellationToken cancellationToken)
+	{
+		if (_device is null)
+		{
+			throw new InvalidOperationException("Not connected to My.JDownloader.");
+		}
+
+		var device = _device;
+		return Task.Run(() =>
+		{
+			cancellationToken.ThrowIfCancellationRequested();
+			return device.AddLinks(url);
+		}, cancellationToken);
+	}
+
+	private void RefreshLinkStats(IDeviceCloudSession device)
+	{
+		try
+		{
+			var stats = QueryLinkStats(device);
+			lock (_linkStatsLock)
+			{
+				_linkStats = stats;
+				_linkStatsLoaded = true;
+			}
+		}
+		catch (Exception ex)
+		{
+			lock (_linkStatsLock)
+			{
+				_linkStatsFault = ex;
+			}
+		}
 	}
 
 	private static LinkStats QueryLinkStats(IDeviceCloudSession device)
@@ -132,5 +181,6 @@ public sealed class CloudJDownloaderStatsSource : IDownloadStatsSource
 
 	public void Dispose()
 	{
+		_device = null;
 	}
 }

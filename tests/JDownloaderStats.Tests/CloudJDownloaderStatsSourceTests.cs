@@ -1,3 +1,4 @@
+using System.IO;
 using jdownloader_Stats.Models;
 using jdownloader_Stats.Services;
 using JDownloaderStats.Tests.Fakes;
@@ -49,6 +50,40 @@ public class CloudJDownloaderStatsSourceTests
 
 		Assert.Equal("user@example.com", cloud.LastEmail);
 		Assert.Equal("secret", cloud.LastPassword);
+	}
+
+	[Fact]
+	public async Task SendLinkAsync_ForwardsUrlToSession()
+	{
+		var (source, _, session) = CreateConnected();
+		await source.ConnectAsync(CancellationToken.None);
+
+		var result = await source.SendLinkAsync("https://example.com/file.zip", CancellationToken.None);
+
+		Assert.True(result);
+		Assert.Equal(["https://example.com/file.zip"], session.AddedLinks);
+	}
+
+	[Fact]
+	public async Task SendLinkAsync_ReturnsFalse_WhenSessionRejectsLink()
+	{
+		var (source, _, session) = CreateConnected();
+		session.AddLinksResult = false;
+		await source.ConnectAsync(CancellationToken.None);
+
+		var result = await source.SendLinkAsync("https://example.com/file.zip", CancellationToken.None);
+
+		Assert.False(result);
+	}
+
+	[Fact]
+	public async Task SendLinkAsync_Throws_WhenNotConnected()
+	{
+		var (source, _, session) = CreateConnected();
+
+		await Assert.ThrowsAsync<InvalidOperationException>(() =>
+			source.SendLinkAsync("https://example.com/file.zip", CancellationToken.None));
+		Assert.Empty(session.AddedLinks);
 	}
 
 	[Fact]
@@ -160,5 +195,58 @@ public class CloudJDownloaderStatsSourceTests
 		cts.Cancel();
 
 		await Assert.ThrowsAnyAsync<OperationCanceledException>(() => source.GetSnapshotAsync(cts.Token));
+	}
+
+	[Fact]
+	public async Task GetSnapshotAsync_SurfacesLinkStatsFailure()
+	{
+		var (source, _, session) = CreateConnected();
+		session.QueryException = new IOException("boom");
+		await source.ConnectAsync(CancellationToken.None);
+
+		var ex = await SnapshotFailureAsync(source);
+
+		Assert.IsType<IOException>(ex.InnerException);
+	}
+
+	[Fact]
+	public async Task SendLinkAsync_Throws_AfterDispose()
+	{
+		var (source, _, session) = CreateConnected();
+		await source.ConnectAsync(CancellationToken.None);
+		source.Dispose();
+
+		await Assert.ThrowsAsync<InvalidOperationException>(() =>
+			source.SendLinkAsync("https://example.com/file.zip", CancellationToken.None));
+		Assert.Empty(session.AddedLinks);
+	}
+
+	[Fact]
+	public async Task GetSnapshotAsync_Throws_AfterDispose()
+	{
+		var (source, _, _) = CreateConnected();
+		await source.ConnectAsync(CancellationToken.None);
+		source.Dispose();
+
+		await Assert.ThrowsAsync<InvalidOperationException>(() => source.GetSnapshotAsync(CancellationToken.None));
+	}
+
+	private static async Task<InvalidOperationException> SnapshotFailureAsync(CloudJDownloaderStatsSource source)
+	{
+		for (var attempt = 0; attempt < 200; attempt++)
+		{
+			try
+			{
+				await source.GetSnapshotAsync(CancellationToken.None);
+			}
+			catch (InvalidOperationException ex) when (ex.InnerException is not null)
+			{
+				return ex;
+			}
+
+			await Task.Delay(10);
+		}
+
+		throw new TimeoutException("Link stats failure was not surfaced.");
 	}
 }
